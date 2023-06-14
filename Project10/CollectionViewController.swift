@@ -63,18 +63,26 @@ extension CollectionViewController {
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let person = people[indexPath.item]
 
-        let alertController = UIAlertController(title: "Rename person", message: nil, preferredStyle: .alert)
-        alertController.addTextField()
-        alertController.addAction(UIAlertAction(title: "OK", style: .default) { [weak self, weak alertController] _ in
-            guard let newName = alertController?.textFields?[0].text else {
-                return
-            }
+        let alertController = UIAlertController(title: "What do you want to do?", message: "Rename the picture or delete the person?", preferredStyle: .alert)
+        alertController.addAction(UIAlertAction(title: "Rename", style: .default) { [weak self] _ in
+            let renameAlertController = UIAlertController(title: "Rename person", message: nil, preferredStyle: .alert)
+            renameAlertController.addTextField()
+            renameAlertController.addAction(UIAlertAction(title: "OK", style: .default) { [weak self, weak renameAlertController] _ in
+                guard let newName = renameAlertController?.textFields?[0].text else {
+                    return
+                }
 
-            person.name = newName
+                person.name = newName
+                self?.collectionView.reloadData()
+            })
+            renameAlertController.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+
+            self?.present(renameAlertController, animated: true)
+        })
+        alertController.addAction(UIAlertAction(title: "Delete", style: .default) { [weak self] _ in
+            self?.people.remove(at: indexPath.item)
             self?.collectionView.reloadData()
         })
-        alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-
         present(alertController, animated: true)
     }
 }
