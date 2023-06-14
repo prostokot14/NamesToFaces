@@ -19,14 +19,33 @@ final class CollectionViewController: UICollectionViewController {
 
     // MARK: - Private Methods
     @objc private func addNewPerson() {
-        let imagePickerController = UIImagePickerController()
-        imagePickerController.allowsEditing = true
-        imagePickerController.delegate = self
-        present(imagePickerController, animated: true)
+        chooseSourceType()
     }
 
     private func getDocumentsDirectory() -> URL {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+    }
+
+    private func chooseSourceType() {
+        let alertController = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        alertController.addAction(UIAlertAction(title: "Take photo", style: .default) { [weak self] _ in
+            self?.makeImagePickerController(with: .camera)
+        })
+        alertController.addAction(UIAlertAction(title: "Photo library", style: .default) { [weak self] _ in
+            self?.makeImagePickerController(with: .photoLibrary)
+        })
+        present(alertController, animated: true)
+    }
+
+    private func makeImagePickerController(with sourceType: UIImagePickerController.SourceType) {
+        let imagePickerController = UIImagePickerController()
+        guard UIImagePickerController.isSourceTypeAvailable(sourceType) else {
+            return
+        }
+        imagePickerController.sourceType = sourceType
+        imagePickerController.allowsEditing = true
+        imagePickerController.delegate = self
+        present(imagePickerController, animated: true)
     }
 }
 
