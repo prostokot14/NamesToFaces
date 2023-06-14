@@ -19,14 +19,6 @@ final class CollectionViewController: UICollectionViewController {
 
     // MARK: - Private Methods
     @objc private func addNewPerson() {
-        chooseSourceType()
-    }
-
-    private func getDocumentsDirectory() -> URL {
-        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-    }
-
-    private func chooseSourceType() {
         let alertController = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
         alertController.addAction(UIAlertAction(title: "Take photo", style: .default) { [weak self] _ in
             self?.makeImagePickerController(with: .camera)
@@ -35,6 +27,10 @@ final class CollectionViewController: UICollectionViewController {
             self?.makeImagePickerController(with: .photoLibrary)
         })
         present(alertController, animated: true)
+    }
+
+    private func getDocumentsDirectory() -> URL {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
     }
 
     private func makeImagePickerController(with sourceType: UIImagePickerController.SourceType) {
@@ -102,6 +98,7 @@ extension CollectionViewController {
             self?.people.remove(at: indexPath.item)
             self?.collectionView.reloadData()
         })
+        alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         present(alertController, animated: true)
     }
 }
