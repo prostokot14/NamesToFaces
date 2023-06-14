@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import PhotosUI
 
 final class CollectionViewController: UICollectionViewController {
     private var people = [Person]()
@@ -24,13 +25,27 @@ final class CollectionViewController: UICollectionViewController {
             self?.makeImagePickerController(with: .camera)
         })
         alertController.addAction(UIAlertAction(title: "Photo library", style: .default) { [weak self] _ in
-            self?.makeImagePickerController(with: .photoLibrary)
+            if #available(iOS 14.0, *) {
+                self?.makePickerViewController()
+            } else {
+                self?.makeImagePickerController(with: .photoLibrary)
+            }
         })
         present(alertController, animated: true)
     }
 
     private func getDocumentsDirectory() -> URL {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+    }
+
+    @available(iOS 14.0, *)
+    private func makePickerViewController() {
+        var configuration = PHPickerConfiguration()
+        configuration.filter = .images
+
+        let pickerViewController = PHPickerViewController(configuration: configuration)
+        pickerViewController.delegate = self
+        present(pickerViewController, animated: true)
     }
 
     private func makeImagePickerController(with sourceType: UIImagePickerController.SourceType) {
@@ -42,6 +57,25 @@ final class CollectionViewController: UICollectionViewController {
         imagePickerController.allowsEditing = true
         imagePickerController.delegate = self
         present(imagePickerController, animated: true)
+    }
+
+    private func saveImage(_ image: UIImage) {
+        let imageName = UUID().uuidString
+        let imagePath: URL
+
+        if #available(iOS 16.0, *) {
+            imagePath = getDocumentsDirectory().appending(path: imageName)
+        } else {
+            imagePath = getDocumentsDirectory().appendingPathComponent(imageName)
+        }
+
+        if let jpegData = image.jpegData(compressionQuality: 1) {
+            try? jpegData.write(to: imagePath)
+        }
+
+        let person = Person(name: "Unknown", image: imageName)
+        people.append(person)
+        collectionView.reloadData()
     }
 }
 
@@ -109,24 +143,30 @@ extension CollectionViewController: UIImagePickerControllerDelegate, UINavigatio
         guard let image = info[.editedImage] as? UIImage else {
             return
         }
-
-        let imageName = UUID().uuidString
-        let imagePath: URL
-
-        if #available(iOS 16.0, *) {
-            imagePath = getDocumentsDirectory().appending(path: imageName)
-        } else {
-            imagePath = getDocumentsDirectory().appendingPathComponent(imageName)
-        }
-
-        if let jpegData = image.jpegData(compressionQuality: 1) {
-            try? jpegData.write(to: imagePath)
-        }
-
-        let person = Person(name: "Unknown", image: imageName)
-        people.append(person)
-        collectionView.reloadData()
-
+        saveImage(image)
         dismiss(animated: true)
+    }
+}
+
+// MARK: - PHPickerViewControllerDelegate
+@available(iOS 14.0, *)
+extension CollectionViewController: PHPickerViewControllerDelegate {
+    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+        dismiss(animated: true)
+        guard let provider = results.first?.itemProvider else {
+            return
+        }
+
+        if provider.canLoadObject(ofClass: UIImage.self) {
+            provider.loadObject(ofClass: UIImage.self) { [weak self] object, error in
+                DispatchQueue.main.async {
+                    if let image = object as? UIImage {
+                        self?.saveImage(image)
+                    } else if error != nil {
+                        self?.saveImage(UIImage(systemName: "exclamationmark.circle") ?? UIImage())
+                    }
+                }
+            }
+        }
     }
 }
