@@ -79,6 +79,26 @@ final class CollectionViewController: UICollectionViewController {
         people.append(person)
         collectionView.reloadData()
     }
+
+    private func croppedImage(_ image: UIImage) -> UIImage {
+        // The shortest side
+        let sideLength = min(image.size.width, image.size.height)
+
+        // Determines the x,y coordinate of a centered sideLength by sideLength square
+        let sourceSize = image.size
+        let xOffset = (sourceSize.width - sideLength) / 2
+        let yOffset = (sourceSize.height - sideLength) / 2
+
+        // The cropRect is the rect of the image to keep, in this case centered
+        let cropRect = CGRect(x: xOffset, y: yOffset, width: sideLength, height: sideLength).integral
+
+        // Center crop the image
+        let sourceCGImage = image.cgImage
+        guard let croppedCGImage = sourceCGImage?.cropping(to: cropRect) else {
+            return UIImage()
+        }
+        return UIImage(cgImage: croppedCGImage)
+    }
 }
 
 // MARK: - UICollectionViewController
@@ -162,8 +182,8 @@ extension CollectionViewController: PHPickerViewControllerDelegate {
         if provider.canLoadObject(ofClass: UIImage.self) {
             provider.loadObject(ofClass: UIImage.self) { [weak self] object, error in
                 DispatchQueue.main.async {
-                    if let image = object as? UIImage {
-                        self?.saveImage(image)
+                    if let image = object as? UIImage, let croppedImage = self?.croppedImage(image) {
+                        self?.saveImage(croppedImage)
                     } else if error != nil {
                         self?.saveImage(UIImage(systemName: "exclamationmark.circle") ?? UIImage())
                     }
