@@ -9,6 +9,7 @@ import UIKit
 import PhotosUI
 
 final class CollectionViewController: UICollectionViewController {
+    // MARK: - Private Properties
     private var people = [Person]()
 
     // MARK: - UIViewController
