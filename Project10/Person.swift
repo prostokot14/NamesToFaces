@@ -5,9 +5,7 @@
 //  Created by Антон Кашников on 14.06.2023.
 //
 
-import ObjectiveC
-
-final class Person: NSObject {
+struct Person: Codable {
     var name: String
     var image: String
 

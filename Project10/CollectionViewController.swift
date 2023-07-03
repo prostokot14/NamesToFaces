@@ -19,6 +19,14 @@ final class CollectionViewController: UICollectionViewController {
         title = "Names to Faces"
         navigationController?.navigationBar.prefersLargeTitles = true
         navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addNewPerson))
+        
+        if let savedPeople = UserDefaults.standard.object(forKey: "people") as? Data {
+            do {
+                people = try JSONDecoder().decode([Person].self, from: savedPeople)
+            } catch {
+                print("Failes to load people.")
+            }
+        }
     }
 
     // MARK: - Private Methods
@@ -78,6 +86,7 @@ final class CollectionViewController: UICollectionViewController {
 
         let person = Person(name: "Unknown", image: imageName)
         people.append(person)
+        saveData()
         collectionView.reloadData()
     }
 
@@ -99,6 +108,14 @@ final class CollectionViewController: UICollectionViewController {
             return UIImage()
         }
         return UIImage(cgImage: croppedCGImage)
+    }
+    
+    private func saveData() {
+        if let savedData = try? JSONEncoder().encode(people) {
+            UserDefaults.standard.set(savedData, forKey: "people")
+        } else {
+            print("Failed to save people.")
+        }
     }
 }
 
@@ -133,7 +150,7 @@ extension CollectionViewController {
     }
 
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let person = people[indexPath.item]
+        var person = people[indexPath.item]
 
         let alertController = UIAlertController(title: "What do you want to do?", message: "Rename the picture or delete the person?", preferredStyle: .alert)
         alertController.addAction(UIAlertAction(title: "Rename", style: .default) { [weak self] _ in
@@ -145,6 +162,7 @@ extension CollectionViewController {
                 }
 
                 person.name = newName
+                self?.saveData()
                 self?.collectionView.reloadData()
             })
             renameAlertController.addAction(UIAlertAction(title: "Cancel", style: .cancel))
