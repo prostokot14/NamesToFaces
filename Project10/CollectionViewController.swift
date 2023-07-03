@@ -150,20 +150,18 @@ extension CollectionViewController {
     }
 
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        var person = people[indexPath.item]
-
         let alertController = UIAlertController(title: "What do you want to do?", message: "Rename the picture or delete the person?", preferredStyle: .alert)
         alertController.addAction(UIAlertAction(title: "Rename", style: .default) { [weak self] _ in
             let renameAlertController = UIAlertController(title: "Rename person", message: nil, preferredStyle: .alert)
             renameAlertController.addTextField()
             renameAlertController.addAction(UIAlertAction(title: "OK", style: .default) { [weak self, weak renameAlertController] _ in
-                guard let newName = renameAlertController?.textFields?[0].text else {
+                guard let self, let newName = renameAlertController?.textFields?[0].text else {
                     return
                 }
 
-                person.name = newName
-                self?.saveData()
-                self?.collectionView.reloadData()
+                self.people[indexPath.item].name = newName
+                self.saveData()
+                self.collectionView.reloadData()
             })
             renameAlertController.addAction(UIAlertAction(title: "Cancel", style: .cancel))
 
