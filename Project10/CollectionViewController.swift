@@ -136,11 +136,12 @@ extension CollectionViewController {
         let imagePath: URL
         if #available(iOS 16.0, *) {
             imagePath = getDocumentsDirectory().appending(path: person.image)
+            cell.imageView.image = UIImage(contentsOfFile: imagePath.path())
         } else {
             imagePath = getDocumentsDirectory().appendingPathComponent(person.image)
+            cell.imageView.image = UIImage(contentsOfFile: imagePath.path)
         }
 
-        cell.imageView.image = UIImage(contentsOfFile: imagePath.path)
         cell.imageView.layer.borderColor = UIColor(white: 0, alpha: 0.3).cgColor
         cell.imageView.layer.borderWidth = 2
         cell.imageView.layer.cornerRadius = 3
