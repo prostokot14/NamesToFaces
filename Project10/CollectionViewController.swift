@@ -170,6 +170,7 @@ extension CollectionViewController {
         })
         alertController.addAction(UIAlertAction(title: "Delete", style: .default) { [weak self] _ in
             self?.people.remove(at: indexPath.item)
+            self?.saveData()
             self?.collectionView.reloadData()
         })
         alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel))
